@@ -30,13 +30,13 @@ const APIKeyInput = ({ apiKey, onApiKeyChange, disabled = false }) => {
       
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="api-key">RunPulse API Key</Label>
+          <Label htmlFor="api-key">API Key</Label>
           <div className="flex space-x-2">
             <div className="relative flex-1">
               <Input
                 id="api-key"
                 type={showKey ? 'text' : 'password'}
-                placeholder="Enter your RunPulse API key"
+                placeholder="Enter your API key"
                 value={tempKey}
                 onChange={(e) => setTempKey(e.target.value)}
                 disabled={disabled}
@@ -75,15 +75,7 @@ const APIKeyInput = ({ apiKey, onApiKeyChange, disabled = false }) => {
           <Alert>
             <Key className="h-4 w-4" />
             <AlertDescription>
-              You need a RunPulse API key to process documents. 
-              <Button
-                variant="link"
-                className="p-0 h-auto ml-1"
-                onClick={() => window.open('https://docs.runpulse.com/', '_blank')}
-              >
-                Get your API key
-                <ExternalLink className="h-3 w-3 ml-1" />
-              </Button>
+              You need an API key to process documents.
             </AlertDescription>
           </Alert>
         )}
@@ -99,7 +91,7 @@ const APIKeyInput = ({ apiKey, onApiKeyChange, disabled = false }) => {
 
         <div className="text-xs text-muted-foreground space-y-1">
           <p>• Your API key is stored locally in your browser</p>
-          <p>• It's never sent to any server except RunPulse API</p>
+          <p>• It's never sent to any external server</p>
           <p>• Clear your browser data to remove the stored key</p>
         </div>
       </CardContent>

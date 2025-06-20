@@ -95,7 +95,6 @@ export class RunPulseAPI {
 
   // Process file with automatic endpoint selection based on size
   async processFile(file, options = {}) {
-    const fileSizeMB = file.size / (1024 * 1024);
     
     try {
       // Step 1: Upload file using convert endpoint to get presigned URL
