@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card.j
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.jsx';
 import { Button } from '@/components/ui/button.jsx';
 import { Badge } from '@/components/ui/badge.jsx';
+import { normalizeTables } from '@/lib/utils.js';
 import { 
   FileText, 
   Table as TableIcon, 
@@ -266,6 +267,8 @@ const ChunksViewer = ({ chunks }) => {
 const ResultsDisplay = ({ results }) => {
   if (!results) return null;
 
+  const tables = normalizeTables(results.tables);
+
   const downloadResults = () => {
     const dataStr = JSON.stringify(results, null, 2);
     const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
@@ -307,11 +310,11 @@ const ResultsDisplay = ({ results }) => {
           </TabsList>
           
           <TabsContent value="content" className="mt-6">
-            <MarkdownRenderer content={results.markdown} tables={results.tables} />
+            <MarkdownRenderer content={results.markdown} tables={tables} />
           </TabsContent>
           
           <TabsContent value="tables" className="mt-6">
-            <TableViewer tables={results.tables} />
+            <TableViewer tables={tables} />
           </TabsContent>
           
           <TabsContent value="chunks" className="mt-6">
