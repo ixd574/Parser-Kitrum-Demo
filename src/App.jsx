@@ -69,7 +69,7 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-primary rounded-lg">
-                <img src="/kitrum-logo.svg" alt="Kitrum" className="h-6 w-6" />
+                <img src="/kitrum-logo.png" alt="Kitrum" className="h-8 w-8" />
               </div>
               <div>
                 <h1 className="text-xl font-bold">Kitrum Demo</h1>
