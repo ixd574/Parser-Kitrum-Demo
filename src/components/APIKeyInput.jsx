@@ -91,7 +91,11 @@ const APIKeyInput = ({ apiKey, onApiKeyChange, disabled = false }) => {
 
         <div className="text-xs text-muted-foreground space-y-1">
           <p>• Your API key is stored locally in your browser</p>
+<<<<<<< HEAD
           <p>• It's never sent to any server except the processing API</p>
+=======
+          <p>• It's never sent to any external server</p>
+>>>>>>> b88ba5f837f2f3670b5c71924ff07723f1463efe
           <p>• Clear your browser data to remove the stored key</p>
         </div>
       </CardContent>

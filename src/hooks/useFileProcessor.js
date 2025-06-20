@@ -1,20 +1,15 @@
 import { useState, useCallback } from 'react';
 import { RunPulseAPI, fileUtils } from '../lib/api.js';
 
-export const useFileProcessor = (apiKey) => {
+export const useFileProcessor = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [progress, setProgress] = useState(0);
 
-  const api = new RunPulseAPI(apiKey);
+  const api = new RunPulseAPI();
 
   const processFile = useCallback(async (file, options = {}) => {
-    if (!apiKey) {
-      setError('API key is required');
-      return;
-    }
-
     if (!fileUtils.isValidFileType(file)) {
       setError('Unsupported file type');
       return;
@@ -41,7 +36,7 @@ export const useFileProcessor = (apiKey) => {
     } finally {
       setIsProcessing(false);
     }
-  }, [apiKey]);
+  }, []);
 
   const reset = useCallback(() => {
     setResults(null);

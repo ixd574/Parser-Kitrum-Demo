@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FileText, Zap, Shield, Cpu } from 'lucide-react';
 import { Button } from '@/components/ui/button.jsx';
 import { Card, CardContent } from '@/components/ui/card.jsx';
@@ -9,7 +9,6 @@ import FileUpload from './components/FileUpload.jsx';
 import ProcessingOptions from './components/ProcessingOptions.jsx';
 import ProcessingStatus from './components/ProcessingStatus.jsx';
 import ResultsDisplay from './components/ResultsDisplay.jsx';
-import APIKeyInput from './components/APIKeyInput.jsx';
 
 // Hooks
 import { useFileProcessor, useFileUpload } from './hooks/useFileProcessor.js';
@@ -17,7 +16,6 @@ import { useFileProcessor, useFileUpload } from './hooks/useFileProcessor.js';
 import './App.css';
 
 function App() {
-  const [apiKey, setApiKey] = useState('');
   const [processingOptions, setProcessingOptions] = useState({
     chunking: 'semantic',
     returnTables: true,
@@ -27,24 +25,6 @@ function App() {
     schemaText: '',
     schemaPrompt: '',
   });
-
-  // Load API key from localStorage on mount
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem('runpulse-api-key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
-
-  // Save API key to localStorage when it changes
-  const handleApiKeyChange = (newApiKey) => {
-    setApiKey(newApiKey);
-    if (newApiKey) {
-      localStorage.setItem('runpulse-api-key', newApiKey);
-    } else {
-      localStorage.removeItem('runpulse-api-key');
-    }
-  };
 
   // File upload hook
   const {
@@ -65,7 +45,7 @@ function App() {
     error,
     progress,
     reset,
-  } = useFileProcessor(apiKey);
+  } = useFileProcessor();
 
   const handleProcessFiles = async () => {
     if (files.length === 0) return;
@@ -89,10 +69,10 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="p-2 bg-primary rounded-lg">
-                <FileText className="h-6 w-6 text-primary-foreground" />
+                <img src="/kitrum-logo.svg" alt="Kitrum" className="h-6 w-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">AI Document Parser</h1>
+                <h1 className="text-xl font-bold">Kitrum Demo</h1>
                 <p className="text-sm text-muted-foreground">AI-Powered Document Analysis</p>
               </div>
             </div>
@@ -153,13 +133,6 @@ function App() {
             </Card>
           </div>
 
-          {/* API Key Configuration */}
-          <APIKeyInput
-            apiKey={apiKey}
-            onApiKeyChange={handleApiKeyChange}
-            disabled={isProcessing}
-          />
-
           {/* File Upload */}
           <FileUpload
             files={files}
@@ -169,18 +142,18 @@ function App() {
             onFileSelect={handleFileSelect}
             onRemoveFile={removeFile}
             onClearFiles={clearFiles}
-            disabled={isProcessing || !apiKey}
+            disabled={isProcessing}
           />
 
           {/* Processing Options */}
           <ProcessingOptions
             options={processingOptions}
             onOptionsChange={setProcessingOptions}
-            disabled={isProcessing || !apiKey}
+            disabled={isProcessing}
           />
 
           {/* Action Buttons */}
-          {files.length > 0 && apiKey && (
+          {files.length > 0 && (
             <div className="flex justify-center space-x-4">
               <Button
                 onClick={handleProcessFiles}
@@ -216,15 +189,13 @@ function App() {
           {results && <ResultsDisplay results={results} />}
 
           {/* Demo Notice */}
-          {!apiKey && (
-            <Alert>
-              <FileText className="h-4 w-4" />
-              <AlertDescription>
-                This is a demo application. To process real documents, you'll need an API key. 
-                The interface shows all the features that would be available with a valid API key.
-              </AlertDescription>
-            </Alert>
-          )}
+          <Alert>
+            <FileText className="h-4 w-4" />
+            <AlertDescription>
+              This is a demo application showcasing AI-powered document processing capabilities.
+              All features are available for testing and demonstration purposes.
+            </AlertDescription>
+          </Alert>
         </div>
       </main>
 
