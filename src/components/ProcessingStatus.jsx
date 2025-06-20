@@ -62,7 +62,7 @@ const ProcessingStatus = ({ isProcessing, progress, error, results }) => {
                 <div className="text-2xl font-bold text-primary">
                   {results['plan-info']?.pages_used || 'N/A'}
                 </div>
-                <div className="text-xs text-muted-foreground">Pages Processed</div>
+                <div className="text-xs text-muted-foreground">Total Pages Processed</div>
               </div>
               
               <div className="text-center">

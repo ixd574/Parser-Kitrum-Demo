@@ -3,7 +3,7 @@ const API_BASE_URL = 'https://api.runpulse.com';
 
 export class RunPulseAPI {
   constructor(apiKey) {
-    this.apiKey = apiKey;
+    this.apiKey = apiKey || import.meta.env.VITE_RUNPULSE_API_KEY;
   }
 
   // Convert file to presigned URL for processing
@@ -107,6 +107,47 @@ export class RunPulseAPI {
         console.log('Extracting content from:', uploadResult.s3_object_url);
         const extractResult = await this.extractFile(uploadResult.s3_object_url, options);
         console.log('Extract result:', extractResult);
+        
+        // Step 3: Format the complete document using OpenAI
+        if (extractResult.markdown || extractResult.tables) {
+          console.log('Formatting complete document with OpenAI...');
+          try {
+            const formatResponse = await fetch(import.meta.env.VITE_OPENAI_FORMATTER_URL || 'https://5000-ilggczbxcfy3q33sieuyp-79631b79.manusvm.computer/format-document', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                markdown: extractResult.markdown || '',
+                tables: extractResult.tables || [],
+                chunks: extractResult.chunks || []
+              })
+            });
+
+            if (formatResponse.ok) {
+              const formatData = await formatResponse.json();
+              console.log('Format response:', formatData);
+              
+              // Return the formatted data
+              return {
+                ...extractResult,
+                markdown: formatData.formatted_markdown,
+                original_markdown: extractResult.markdown,
+                formatting_stats: {
+                  tables_processed: formatData.tables_processed,
+                  chunks_processed: formatData.chunks_processed
+                }
+              };
+            } else {
+              console.warn('OpenAI formatting failed, using original data');
+              return extractResult;
+            }
+          } catch (formatError) {
+            console.warn('OpenAI formatting error:', formatError);
+            return extractResult;
+          }
+        }
+        
         return extractResult;
       } else {
         throw new Error('No S3 object URL returned from upload');

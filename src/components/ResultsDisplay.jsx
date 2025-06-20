@@ -16,71 +16,89 @@ import {
 const MarkdownRenderer = ({ content, tables }) => {
   if (!content) return null;
 
-  // Simple and reliable content processing without external libraries
+  // Enhanced markdown processing that handles OpenAI-formatted content
   const processContent = () => {
     if (!content) return '';
     
     // Clean the content first
     let processedContent = content.trim();
     
-    // Convert headers with proper spacing
-    processedContent = processedContent.replace(/^### (.+)$/gm, '\n<h3 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$1</h3>\n');
-    processedContent = processedContent.replace(/^## (.+)$/gm, '\n<h2 class="text-xl font-semibold mt-8 mb-4 text-gray-900">$1</h2>\n');
-    processedContent = processedContent.replace(/^# (.+)$/gm, '\n<h1 class="text-2xl font-bold mt-10 mb-6 text-gray-900">$1</h1>\n');
+    // Convert markdown headers to HTML (including #### headers)
+    processedContent = processedContent.replace(/^#### (.+)$/gm, '<h4 class="text-base font-semibold mt-4 mb-2 text-gray-800">$1</h4>');
+    processedContent = processedContent.replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold mt-6 mb-3 text-gray-800">$1</h3>');
+    processedContent = processedContent.replace(/^## (.+)$/gm, '<h2 class="text-xl font-semibold mt-8 mb-4 text-gray-900">$1</h2>');
+    processedContent = processedContent.replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold mt-10 mb-6 text-gray-900">$1</h1>');
     
-    // Convert text formatting
+    // Convert horizontal rules
+    processedContent = processedContent.replace(/\\---/g, '<hr class="my-6 border-gray-300">');
+    processedContent = processedContent.replace(/^---$/gm, '<hr class="my-6 border-gray-300">');
+    
+    // Convert markdown text formatting (handle both ** and existing HTML)
     processedContent = processedContent.replace(/\*\*([^*\n]+)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
     processedContent = processedContent.replace(/\*([^*\n]+)\*/g, '<em class="italic text-gray-700">$1</em>');
     
-    // Split into paragraphs and process
-    const paragraphs = processedContent.split(/\n\s*\n/);
-    const processedParagraphs = [];
+    // Clean up any escaped HTML that might have come from OpenAI
+    processedContent = processedContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
     
-    paragraphs.forEach((paragraph, index) => {
-      const trimmed = paragraph.trim();
-      if (!trimmed) return;
+    // Convert markdown tables to HTML tables
+    const tableRegex = /\|(.+)\|\s*\n\|[-\s|:]+\|\s*\n((?:\|.+\|\s*\n?)*)/g;
+    processedContent = processedContent.replace(tableRegex, (match, headerRow, bodyRows) => {
+      // Parse header
+      const headers = headerRow.split('|').map(h => h.trim()).filter(h => h);
       
-      // Check if it's already a header
-      if (trimmed.startsWith('<h')) {
-        processedParagraphs.push(trimmed);
-      } else {
-        // Wrap in paragraph tags
-        const cleanParagraph = trimmed.replace(/\n/g, ' ');
-        processedParagraphs.push(`<p class="mb-4 text-gray-700 leading-relaxed">${cleanParagraph}</p>`);
-      }
+      // Parse body rows
+      const rows = bodyRows.trim().split('\n').map(row => 
+        row.split('|').map(cell => cell.trim()).filter(cell => cell)
+      ).filter(row => row.length > 0);
       
-      // Insert ALL tables sequentially after content sections
-      if (tables && tables.length > 0 && index === Math.floor(paragraphs.length / 2)) {
-        tables.forEach((table, tableIndex) => {
-          if (table && Array.isArray(table) && table.length > 0) {
-            const tableHtml = `
-              <div class="my-8 overflow-x-auto">
-                <div class="mb-3">
-                  <span class="text-sm font-medium text-gray-600 bg-gray-100 px-2 py-1 rounded">Table ${tableIndex + 1}</span>
-                </div>
-                <table class="w-full border-collapse border border-gray-300 bg-white rounded-lg shadow-sm">
-                  <tbody>
-                    ${table.map((row, rowIndex) => {
-                      if (!Array.isArray(row)) return '';
-                      return `
-                        <tr class="${rowIndex === 0 ? 'bg-gray-50 font-medium' : 'hover:bg-gray-50'}">
-                          ${row.map(cell => `
-                            <td class="border border-gray-300 px-3 py-2 text-sm ${rowIndex === 0 ? 'font-semibold text-gray-900' : 'text-gray-700'}">
-                              ${String(cell || '—').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-                            </td>
-                          `).join('')}
-                        </tr>
-                      `;
-                    }).join('')}
-                  </tbody>
-                </table>
-              </div>
-            `;
-            processedParagraphs.push(tableHtml);
-          }
-        });
-      }
+      // Generate HTML table with proper formatting for cell content
+      const tableHtml = `
+        <div class="my-8 overflow-x-auto">
+          <table class="w-full border-collapse border border-gray-300 bg-white rounded-lg shadow-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                ${headers.map(header => {
+                  // Format header content
+                  let formattedHeader = header.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                  return `<th class="border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-900 text-left">${formattedHeader}</th>`;
+                }).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(row => `
+                <tr class="hover:bg-gray-50">
+                  ${row.map(cell => {
+                    // Format cell content
+                    let formattedCell = String(cell || '—');
+                    formattedCell = formattedCell.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>');
+                    formattedCell = formattedCell.replace(/\(([^)]+)\)/g, '($1)'); // Handle parentheses for negative numbers
+                    return `<td class="border border-gray-300 px-3 py-2 text-sm text-gray-700">${formattedCell}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+      
+      return tableHtml;
     });
+    
+    // Convert paragraphs
+    const paragraphs = processedContent.split(/\n\s*\n/);
+    const processedParagraphs = paragraphs.map(paragraph => {
+      const trimmed = paragraph.trim();
+      if (!trimmed) return '';
+      
+      // Skip if it's already HTML (headers, tables, etc.)
+      if (trimmed.startsWith('<')) {
+        return trimmed;
+      }
+      
+      // Convert to paragraph
+      const cleanParagraph = trimmed.replace(/\n/g, ' ');
+      return `<p class="mb-4 text-gray-700 leading-relaxed">${cleanParagraph}</p>`;
+    }).filter(p => p);
     
     return processedParagraphs.join('\n');
   };
@@ -95,11 +113,11 @@ const MarkdownRenderer = ({ content, tables }) => {
           }} 
         />
         
-        {/* Debug info - show table count */}
+        {/* Debug info */}
         {tables && tables.length > 0 && (
           <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500">
-              Document contains {tables.length} table{tables.length !== 1 ? 's' : ''} total
+              Document processed successfully with AI formatting
             </p>
           </div>
         )}
